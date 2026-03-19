@@ -4,7 +4,7 @@ A REST API for logging and retrieving mineral assay results from mining sites.
 
 ## Status
 
-In progress - DynamoDB connected, data persists across restarts.
+In progress - Mangum adapter added for AWS Lambda compatibility.
 
 ## Tech Stack
 
@@ -22,11 +22,15 @@ uvicorn app.main:app --reload
 
 ## Environment Variables
 
-DYNAMODB_TABLE_NAME - defaults to assaylog-samples
-AWS_REGION - defaults to ap-southeast-2
+- DYNAMODB_TABLE_NAME - defaults to assaylog-samples
+- AWS_REGION - defaults to ap-southeast-2
 
 ## Endpoints
 
-POST /samples - log a new assay sample
-GET  /samples/{site} - retrieve all samples for a site
-GET  /samples/{site}/summary - average grade and sample count for a site
+- POST /samples - log a new assay sample
+- GET  /samples/{site} - retrieve all samples for a site
+- GET  /samples/{site}/summary - average grade and sample count for a site
+
+## Architecture
+
+HTTP Request → API Gateway → Lambda (FastAPI via Mangum) → DynamoDB
