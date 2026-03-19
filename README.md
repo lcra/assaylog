@@ -4,13 +4,13 @@ A REST API for logging and retrieving mineral assay results from mining sites.
 
 ## Status
 
-In progress - API running locally with in-memory data store.
+In progress - DynamoDB connected, data persists across restarts.
 
 ## Tech Stack
 
 - Python / FastAPI
 - AWS Lambda + API Gateway (coming)
-- DynamoDB (coming)
+- DynamoDB
 - Terraform (coming)
 - GitHub Actions (coming)
 
@@ -19,6 +19,11 @@ In progress - API running locally with in-memory data store.
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+## Environment Variables
+
+DYNAMODB_TABLE_NAME - defaults to assaylog-samples
+AWS_REGION - defaults to ap-southeast-2
 
 ## Endpoints
 
