@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
+from app import database
 
 router = APIRouter()
-
-samples_db: List[dict] = []
 
 class SampleIn(BaseModel):
     site: str
@@ -14,25 +12,28 @@ class SampleIn(BaseModel):
 
 @router.post("/samples", status_code=201)
 def log_sample(sample: SampleIn):
-    record = sample.model_dump()
-    samples_db.append(record)
+    record = database.put_sample(
+        site=sample.site,
+        depth_m=sample.depth_m,
+        element=sample.element,
+        grade=sample.grade,
+    )
     return {"message": "Sample logged", "sample": record}
-
 
 @router.get("/samples/{site}")
 def get_samples(site: str):
-    results = [s for s in samples_db if s["site"] == site]
+    results = database.get_samples_by_site(site)
     if not results:
         raise HTTPException(status_code=404, detail=f"No samples found for site: {site}")
     return {"site": site, "samples": results}
 
-
 @router.get("/samples/{site}/summary")
 def get_summary(site: str):
-    results = [s for s in samples_db if s["site"] == site]
+    results = database.get_samples_by_site(site)
     if not results:
         raise HTTPException(status_code=404, detail=f"No samples found for site: {site}")
-    avg_grade = sum(s["grade"] for s in results) / len(results)
+    grades = [float(s["grade"]) for s in results]
+    avg_grade = sum(grades) / len(grades)
     return {
         "site": site,
         "sample_count": len(results),
