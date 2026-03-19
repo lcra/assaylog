@@ -4,14 +4,14 @@ A REST API for logging and retrieving mineral assay results from mining sites.
 
 ## Status
 
-In progress - Mangum adapter added for AWS Lambda compatibility.
+In progress - Terraform config added for Lambda, API Gateway, and DynamoDB.
 
 ## Tech Stack
 
 - Python / FastAPI
-- AWS Lambda + API Gateway (coming)
+- AWS Lambda + API Gateway
 - DynamoDB
-- Terraform (coming)
+- Terraform
 - GitHub Actions (coming)
 
 ## Running Locally
@@ -28,9 +28,25 @@ uvicorn app.main:app --reload
 ## Endpoints
 
 - POST /samples - log a new assay sample
-- GET  /samples/{site} - retrieve all samples for a site
-- GET  /samples/{site}/summary - average grade and sample count for a site
+- GET /samples/{site} - retrieve all samples for a site
+- GET /samples/{site}/summary - average grade and sample count for a site
 
 ## Architecture
 
 HTTP Request → API Gateway → Lambda (FastAPI via Mangum) → DynamoDB
+
+## Infrastructure
+
+All AWS resources are provisioned via Terraform:
+
+- Lambda function running Python 3.11
+- API Gateway HTTP API routing all requests to Lambda
+- IAM role scoped to DynamoDB read/write only
+- DynamoDB table with site as partition key and id as sort key
+
+## Deploying
+```bash
+cd terraform
+terraform init
+terraform apply
+```
