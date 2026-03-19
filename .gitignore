@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Virtual environment
+venv/
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+*.tfvars
+
+# AWS
+.aws/
+
+# Misc
+*.zip
+.DS_Store
