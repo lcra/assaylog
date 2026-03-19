@@ -4,7 +4,7 @@ A REST API for logging and retrieving mineral assay results from mining sites.
 
 ## Status
 
-In progress - Terraform config added for Lambda, API Gateway, and DynamoDB.
+In progress - Deployed to AWS and verified end to end.
 
 ## Tech Stack
 
@@ -18,6 +18,20 @@ In progress - Terraform config added for Lambda, API Gateway, and DynamoDB.
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
+
+## Deploying
+```bash
+# Install Linux-compatible dependencies
+pip install -r requirements.txt --target ./package --platform manylinux2014_x86_64 --only-binary=:all: --python-version 3.11
+
+# Package the app
+Compress-Archive -Path package\*, app -DestinationPath lambda.zip
+
+# Deploy
+cd terraform
+terraform init
+terraform apply
 ```
 
 ## Environment Variables
@@ -44,9 +58,15 @@ All AWS resources are provisioned via Terraform:
 - IAM role scoped to DynamoDB read/write only
 - DynamoDB table with site as partition key and id as sort key
 
-## Deploying
-```bash
-cd terraform
-terraform init
-terraform apply
+## Live API
+
+Base URL: https://zw3kb7keq2.execute-api.ap-southeast-2.amazonaws.com
+
+Example requests:
+```powershell
+# Log a sample
+Invoke-WebRequest -Uri "https://zw3kb7keq2.execute-api.ap-southeast-2.amazonaws.com/samples" -Method POST -Headers @{"Content-Type"="application/json"} -Body '{"site": "Olympic Dam", "depth_m": 142.5, "element": "Cu", "grade": 2.3}'
+
+# Get samples for a site
+Invoke-WebRequest -Uri "https://zw3kb7keq2.execute-api.ap-southeast-2.amazonaws.com/samples/Olympic%20Dam" -Method GET
 ```
