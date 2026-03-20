@@ -1,8 +1,9 @@
 terraform {
   backend "s3" {
-    bucket = "assaylog-terraform-state-548220614840"
-    key    = "terraform.tfstate"
-    region = "us-east-2"
+    bucket  = "assaylog-terraform-state-548220614840"
+    key     = "terraform.tfstate"
+    region  = "us-east-2"
+    encrypt = true
   }
   required_providers {
     aws = {
@@ -65,12 +66,13 @@ resource "aws_lambda_function" "assaylog" {
   role             = aws_iam_role.lambda_role.arn
   handler          = "app.main.handler"
   runtime          = "python3.11"
+  memory_size      = 128
+  timeout          = 30
   source_code_hash = fileexists("${path.module}/../lambda.zip") ? filebase64sha256("${path.module}/../lambda.zip") : null
 
   environment {
     variables = {
       DYNAMODB_TABLE_NAME = var.table_name
-      AWS_REGION_NAME     = var.aws_region
     }
   }
 }
@@ -96,6 +98,12 @@ resource "aws_apigatewayv2_integration" "lambda" {
 resource "aws_apigatewayv2_route" "default" {
   api_id    = aws_apigatewayv2_api.assaylog.id
   route_key = "ANY /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
+resource "aws_apigatewayv2_route" "root" {
+  api_id    = aws_apigatewayv2_api.assaylog.id
+  route_key = "ANY /"
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
