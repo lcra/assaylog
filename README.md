@@ -4,7 +4,7 @@ A REST API for logging and retrieving mineral assay results from mining sites.
 
 ## Status
 
-In progress - Deployed to AWS and verified end to end.
+In progress - Endpoint tests added, all passing.
 
 ## Tech Stack
 
@@ -18,6 +18,11 @@ In progress - Deployed to AWS and verified end to end.
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
+
+## Running Tests
+```bash
+pytest tests/ -v
 ```
 
 ## Deploying
@@ -47,11 +52,11 @@ terraform apply
 
 ## Architecture
 
-HTTP Request → API Gateway → Lambda (FastAPI via Mangum) → DynamoDB
+HTTP Request -> API Gateway -> Lambda (FastAPI via Mangum) -> DynamoDB
 
 ## Infrastructure
 
-All AWS resources are provisioned via Terraform:
+All AWS resources provisioned via Terraform:
 
 - Lambda function running Python 3.11
 - API Gateway HTTP API routing all requests to Lambda
