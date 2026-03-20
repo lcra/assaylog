@@ -1,4 +1,9 @@
 terraform {
+  backend "s3" {
+    bucket = "assaylog-terraform-state-548220614840"
+    key    = "terraform.tfstate"
+    region = "us-east-2"
+  }
   required_providers {
     aws = {
       source  = "hashicorp/aws"
