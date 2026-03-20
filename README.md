@@ -31,6 +31,7 @@ HTTP Request -> API Gateway -> Lambda (FastAPI via Mangum) -> DynamoDB
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | / | Health check |
 | POST | /samples | Log a new assay sample |
 | GET | /samples/{site} | Retrieve all samples for a site |
 | GET | /samples/{site}/summary | Average grade and sample count for a site |
@@ -54,9 +55,9 @@ Response (201):
   "sample": {
     "site": "Olympic Dam",
     "id": "0ad43864-0573-4c34-8702-7dab500e88a5",
-    "depth_m": "142.5",
+    "depth_m": 142.5,
     "element": "Cu",
-    "grade": "2.3"
+    "grade": 2.3
   }
 }
 ```
@@ -71,9 +72,9 @@ Response (200):
     {
       "site": "Olympic Dam",
       "id": "0ad43864-0573-4c34-8702-7dab500e88a5",
-      "depth_m": "142.5",
+      "depth_m": 142.5,
       "element": "Cu",
-      "grade": "2.3"
+      "grade": 2.3
     }
   ]
 }
