@@ -218,3 +218,51 @@ def test_get_summary_multiple_samples(mock_get):
 def test_get_summary_not_found(mock_get):
     response = client.get("/samples/Unknown%20Site/summary")
     assert response.status_code == 404
+
+# --- Idempotency tests ---
+
+IDEMPOTENCY_HEADER = {"Idempotency-Key": "unique-key-abc"}
+
+# POST with idempotency key — first call writes sample
+@patch("app.routes.samples.database.store_idempotency_key")
+@patch("app.routes.samples.database.check_idempotency_key", return_value=None)
+@patch("app.routes.samples.database.put_sample", side_effect=mock_put_sample)
+def test_idempotent_first_call(mock_put, mock_check, mock_store):
+    response = client.post("/samples", json=VALID_SAMPLE, headers=IDEMPOTENCY_HEADER)
+    assert response.status_code == 201
+    assert response.json()["message"] == "Sample logged"
+    mock_check.assert_called_once_with("unique-key-abc")
+    mock_put.assert_called_once()
+    mock_store.assert_called_once()
+
+# POST with same idempotency key — returns cached response, no write
+@patch("app.routes.samples.database.put_sample", side_effect=mock_put_sample)
+@patch("app.routes.samples.database.check_idempotency_key", return_value={
+    "message": "Sample logged",
+    "sample": {"site": "Olympic Dam", "id": "test-uuid-1234", "hole_id": "OD-DDH-042",
+               "depth_m": 142.5, "sample_from_m": 140.0, "sample_to_m": 142.5,
+               "element": "Cu", "grade": 2.3, "assay_method": "fire_assay",
+               "unit": "ppm", "status": "submitted"},
+})
+def test_idempotent_duplicate_key(mock_check, mock_put):
+    response = client.post("/samples", json=VALID_SAMPLE, headers=IDEMPOTENCY_HEADER)
+    assert response.status_code == 201
+    assert response.json()["message"] == "Sample logged"
+    mock_check.assert_called_once_with("unique-key-abc")
+    mock_put.assert_not_called()
+
+# POST without idempotency key — no idempotency check
+@patch("app.routes.samples.database.check_idempotency_key")
+@patch("app.routes.samples.database.put_sample", side_effect=mock_put_sample)
+def test_no_idempotency_header(mock_put, mock_check):
+    response = client.post("/samples", json=VALID_SAMPLE)
+    assert response.status_code == 201
+    mock_check.assert_not_called()
+    mock_put.assert_called_once()
+
+# POST with idempotency key — idempotency DB fails on check
+@patch("app.routes.samples.database.check_idempotency_key",
+       side_effect=ClientError({"Error": {"Code": "500", "Message": "fail"}}, "GetItem"))
+def test_idempotent_check_db_error(mock_check):
+    response = client.post("/samples", json=VALID_SAMPLE, headers=IDEMPOTENCY_HEADER)
+    assert response.status_code == 503

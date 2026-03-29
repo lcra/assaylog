@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field, model_validator
 from botocore.exceptions import ClientError
 from app import database
@@ -31,7 +31,18 @@ class SampleIn(BaseModel):
         return self
 
 @router.post("/samples", status_code=201)
-def log_sample(sample: SampleIn):
+def log_sample(
+    sample: SampleIn,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+):
+    if idempotency_key is not None:
+        try:
+            existing = database.check_idempotency_key(idempotency_key)
+        except ClientError:
+            raise HTTPException(status_code=503, detail="Database unavailable")
+        if existing is not None:
+            return existing
+
     try:
         record = database.put_sample(
             site=sample.site,
@@ -51,7 +62,16 @@ def log_sample(sample: SampleIn):
         )
     except ClientError:
         raise HTTPException(status_code=503, detail="Database unavailable")
-    return {"message": "Sample logged", "sample": record}
+
+    response_body = {"message": "Sample logged", "sample": record}
+
+    if idempotency_key is not None:
+        try:
+            database.store_idempotency_key(idempotency_key, response_body)
+        except ClientError:
+            pass  # Best-effort; sample already written successfully
+
+    return response_body
 
 @router.get("/samples/{site}")
 def get_samples(site: str):

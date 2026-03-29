@@ -49,7 +49,10 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
           "dynamodb:Query",
           "dynamodb:Scan"
         ]
-        Resource = aws_dynamodb_table.samples.arn
+        Resource = [
+          aws_dynamodb_table.samples.arn,
+          aws_dynamodb_table.idempotency.arn
+        ]
       }
     ]
   })
@@ -72,7 +75,8 @@ resource "aws_lambda_function" "assaylog" {
 
   environment {
     variables = {
-      DYNAMODB_TABLE_NAME = var.table_name
+      DYNAMODB_TABLE_NAME  = var.table_name
+      IDEMPOTENCY_TABLE_NAME = var.idempotency_table_name
     }
   }
 }

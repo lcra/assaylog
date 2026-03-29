@@ -1,4 +1,6 @@
 import boto3
+import json
+import time
 import uuid
 import os
 from datetime import datetime
@@ -6,10 +8,14 @@ from decimal import Decimal
 from typing import Optional
 
 TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "assaylog-samples")
+IDEMPOTENCY_TABLE_NAME = os.environ.get("IDEMPOTENCY_TABLE_NAME", "assaylog-idempotency")
 REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+
+IDEMPOTENCY_TTL_SECONDS = 86400  # 24 hours
 
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
 table = dynamodb.Table(TABLE_NAME)
+idempotency_table = dynamodb.Table(IDEMPOTENCY_TABLE_NAME)
 
 
 def _convert_decimals(item: dict) -> dict:
@@ -55,6 +61,22 @@ def put_sample(
         item["source_system"] = source_system
     table.put_item(Item=item)
     return _convert_decimals(item)
+
+
+def check_idempotency_key(key: str) -> Optional[dict]:
+    response = idempotency_table.get_item(Key={"idempotency_key": key})
+    item = response.get("Item")
+    if item is None:
+        return None
+    return json.loads(item["response"])
+
+
+def store_idempotency_key(key: str, response_body: dict) -> None:
+    idempotency_table.put_item(Item={
+        "idempotency_key": key,
+        "response": json.dumps(response_body),
+        "ttl": int(time.time()) + IDEMPOTENCY_TTL_SECONDS,
+    })
 
 
 def get_samples_by_site(site: str) -> list:

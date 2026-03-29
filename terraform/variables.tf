@@ -12,3 +12,8 @@ variable "lambda_function_name" {
   description = "Name of the Lambda function"
   default     = "assaylog"
 }
+
+variable "idempotency_table_name" {
+  description = "DynamoDB table name for idempotency keys"
+  default     = "assaylog-idempotency"
+}
