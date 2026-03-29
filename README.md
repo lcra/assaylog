@@ -42,11 +42,18 @@ Request body:
 ```json
 {
   "site": "Olympic Dam",
+  "hole_id": "OD-DDH-042",
   "depth_m": 142.5,
+  "sample_from_m": 140.0,
+  "sample_to_m": 142.5,
   "element": "Cu",
-  "grade": 2.3
+  "grade": 2.3,
+  "assay_method": "fire_assay",
+  "unit": "ppm"
 }
 ```
+
+Optional fields: `batch_id`, `collected_at`, `lab_received_at`, `status` (default: `"submitted"`), `source_system`.
 
 Response (201):
 ```json
@@ -55,9 +62,15 @@ Response (201):
   "sample": {
     "site": "Olympic Dam",
     "id": "0ad43864-0573-4c34-8702-7dab500e88a5",
+    "hole_id": "OD-DDH-042",
     "depth_m": 142.5,
+    "sample_from_m": 140.0,
+    "sample_to_m": 142.5,
     "element": "Cu",
-    "grade": 2.3
+    "grade": 2.3,
+    "assay_method": "fire_assay",
+    "unit": "ppm",
+    "status": "submitted"
   }
 }
 ```
@@ -72,9 +85,15 @@ Response (200):
     {
       "site": "Olympic Dam",
       "id": "0ad43864-0573-4c34-8702-7dab500e88a5",
+      "hole_id": "OD-DDH-042",
       "depth_m": 142.5,
+      "sample_from_m": 140.0,
+      "sample_to_m": 142.5,
       "element": "Cu",
-      "grade": 2.3
+      "grade": 2.3,
+      "assay_method": "fire_assay",
+      "unit": "ppm",
+      "status": "submitted"
     }
   ]
 }
@@ -151,7 +170,7 @@ Base URL: `https://<api-id>.execute-api.<region>.amazonaws.com`
 Invoke-WebRequest -Uri "https://<api-id>.execute-api.<region>.amazonaws.com/samples" `
   -Method POST `
   -Headers @{"Content-Type"="application/json"} `
-  -Body '{"site": "Olympic Dam", "depth_m": 142.5, "element": "Cu", "grade": 2.3}'
+  -Body '{"site": "Olympic Dam", "hole_id": "OD-DDH-042", "depth_m": 142.5, "sample_from_m": 140.0, "sample_to_m": 142.5, "element": "Cu", "grade": 2.3, "assay_method": "fire_assay", "unit": "ppm"}'
 
 # Get samples for a site
 Invoke-WebRequest -Uri "https://<api-id>.execute-api.<region>.amazonaws.com/samples/Olympic%20Dam" `
